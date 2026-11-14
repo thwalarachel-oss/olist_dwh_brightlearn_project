@@ -1,0 +1,377 @@
+﻿<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="11/8/2026 2:48:27 AM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="GEENKHENSI"
+  DTS:CreatorName="GEENKHENSI\griff"
+  DTS:DTSID="{C93809A6-167A-4D6E-8C6F-A375EA1D0BF6}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="17.0.1016.0"
+  DTS:LocaleID="1033"
+  DTS:ObjectName="Package"
+  DTS:PackageType="5"
+  DTS:VersionBuild="14"
+  DTS:VersionGUID="{318B2C83-13CA-4060-BCB3-DB3FCE5D68CC}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[geenkhensi.olist_dwh]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{59888AA3-6774-419C-9D9A-73A9B3502920}"
+      DTS:ObjectName="geenkhensi.olist_dwh">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=geenkhensi;Initial Catalog=olist_dwh;Provider=SQLOLEDB.1;Integrated Security=SSPI;Application Name=SSIS-Package-{59888AA3-6774-419C-9D9A-73A9B3502920}geenkhensi.olist_dwh;Auto Translate=False;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables />
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\01_create stg_dwh_database"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{2910FC06-F1AF-4F0C-9650-1E6C8F36FA8B}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="01_create stg_dwh_database"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{59888AA3-6774-419C-9D9A-73A9B3502920}"
+          SQLTask:SqlStatementSource="-- 1. CREATE DATABASE IF IT DOES NOT EXIST&#xA;&#xA;IF DB_ID('olist_dwh') IS NULL&#xA;BEGIN&#xA;    CREATE DATABASE olist_dwh;&#xA;END;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\02_create schemas"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{CEE19744-7BE3-4D0A-BA03-2FD25B5B843D}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="02_create schemas"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{59888AA3-6774-419C-9D9A-73A9B3502920}"
+          SQLTask:SqlStatementSource="-- 2. USE DATABASE&#xA;&#xA;USE olist_dwh;&#xA;&#xA;&#xA;-- 3. CREATE BRONZE SCHEMA IF IT DOES NOT EXIST&#xA;&#xA;IF SCHEMA_ID('bronze') IS NULL&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA bronze');&#xA;END;&#xA;&#xA;&#xA;-- 4. CREATE SILVER SCHEMA IF IT DOES NOT EXIST&#xA;&#xA;IF SCHEMA_ID('silver') IS NULL&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA silver');&#xA;END;&#xA;&#xA;&#xA;-- 5. CREATE GOLD SCHEMA IF IT DOES NOT EXIST&#xA;&#xA;IF SCHEMA_ID('gold') IS NULL&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA gold');&#xA;END;&#xA;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\03_create_bronze_tables"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{2D4A3E8F-90B2-4A7E-AE9B-29F374E407C7}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="03_create_bronze_tables"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{59888AA3-6774-419C-9D9A-73A9B3502920}"
+          SQLTask:SqlStatementSource="-- 2. USE DATABASE&#xA;&#xA;USE olist_dwh;&#xA;&#xA;&#xA;-- 3. CREATE BRONZE SCHEMA IF IT DOES NOT EXIST&#xA;&#xA;IF SCHEMA_ID('bronze') IS NULL&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA bronze');&#xA;END;&#xA;&#xA;&#xA;-- 4. CREATE SILVER SCHEMA IF IT DOES NOT EXIST&#xA;&#xA;IF SCHEMA_ID('silver') IS NULL&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA silver');&#xA;END;&#xA;&#xA;&#xA;-- 5. CREATE GOLD SCHEMA IF IT DOES NOT EXIST&#xA;&#xA;IF SCHEMA_ID('gold') IS NULL&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA gold');&#xA;END;&#xA;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\04_create_silver_tables"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{7290E6BA-52A5-4822-85B8-354F93CEBD06}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="04_create_silver_tables"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{59888AA3-6774-419C-9D9A-73A9B3502920}"
+          SQLTask:SqlStatementSource="&#xA;-- =============================================&#xA;-- PROJECT: OLIST DATA WAREHOUSE&#xA;-- DATABASE: olist_dwh&#xA;-- LAYER: SILVER&#xA;-- PURPOSE: CREATE SILVER TABLES&#xA;-- =============================================&#xA;&#xA;USE olist_dwh;&#xA;GO&#xA;&#xA;-- 1. DIM_CUSTOMERS TABLE&#xA;&#xA;IF OBJECT_ID('silver.dim_customers', 'U') IS NULL&#xA;BEGIN&#xA;    CREATE TABLE silver.dim_customers&#xA;    (&#xA;        customer_key INT IDENTITY(1,1) PRIMARY KEY,&#xA;        customer_id VARCHAR(250) NOT NULL,&#xA;        customer_unique_id VARCHAR(250) NOT NULL,&#xA;        zip_code_prefix VARCHAR(250),&#xA;        city VARCHAR(250),&#xA;        state VARCHAR(250)&#xA;    );&#xA;END;&#xA;&#xA;-- 2. DIM_PRODUCTS TABLE&#xA;&#xA;IF OBJECT_ID('silver.dim_products', 'U') IS NULL&#xA;BEGIN&#xA;    CREATE TABLE silver.dim_products&#xA;    (&#xA;        product_key INT IDENTITY(1,1) PRIMARY KEY,&#xA;        product_id VARCHAR(250) NOT NULL,&#xA;        product_category_name VARCHAR(250),&#xA;        product_category_name_english VARCHAR(250),&#xA;        product_weight_g INT,&#xA;        product_length_cm INT,&#xA;        product_height_cm INT,&#xA;        product_width_cm INT&#xA;    );&#xA;END;&#xA;&#xA;&#xA;-- 3. DIM_SELLERS TABLE&#xA;&#xA;IF OBJECT_ID('silver.dim_sellers', 'U') IS NULL&#xA;BEGIN&#xA;    CREATE TABLE silver.dim_sellers&#xA;    (&#xA;        seller_key INT IDENTITY(1,1) PRIMARY KEY,&#xA;        seller_id VARCHAR(50) NOT NULL,&#xA;        zip_code_prefix VARCHAR(250),&#xA;        city VARCHAR(250),&#xA;        state VARCHAR(250)&#xA;    );&#xA;END;&#xA;&#xA;&#xA;-- 4. FACT_ORDERS TABLE&#xA;&#xA;IF OBJECT_ID('silver.fact_orders', 'U') IS NULL&#xA;BEGIN&#xA;    CREATE TABLE silver.fact_orders&#xA;    (&#xA;        order_id VARCHAR(250) NOT NULL,&#xA;        customer_id VARCHAR(250) NOT NULL,&#xA;        order_status VARCHAR(250),&#xA;        order_purchase_timestamp DATETIME,&#xA;        order_approved_at DATETIME,&#xA;        order_delivered_carrier_date DATETIME,&#xA;        order_delivered_customer_date DATETIME,&#xA;        order_estimated_delivery_date DATETIME&#xA;    );&#xA;END;&#xA;&#xA;&#xA;-- 5. FACT_ORDER_ITEMS TABLE&#xA;&#xA;IF OBJECT_ID('silver.fact_order_items', 'U') IS NULL&#xA;BEGIN&#xA;    CREATE TABLE silver.fact_order_items&#xA;    (&#xA;        order_id VARCHAR(250) NOT NULL,&#xA;        order_item_id INT NOT NULL,&#xA;        product_id VARCHAR(250) NOT NULL,&#xA;        seller_id VARCHAR(250) NOT NULL,&#xA;        shipping_limit_date DATETIME,&#xA;        price DECIMAL(10,2),&#xA;        freight_value DECIMAL(10,2)&#xA;    );&#xA;END;&#xA;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Run Gold Views"
+      DTS:CreationName="Microsoft.ExecutePackageTask"
+      DTS:Description="Execute Package Task"
+      DTS:DTSID="{E1E87F25-622F-4084-AFB3-F1F95BA5B9F4}"
+      DTS:ExecutableType="Microsoft.ExecutePackageTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Run Gold Views"
+      DTS:TaskContact="Microsoft Corporation; Microsoft SQL Server; Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <ExecutePackageTask>
+          <UseProjectReference>True</UseProjectReference>
+          <PackageName>03_gold_views.dtsx</PackageName>
+        </ExecutePackageTask>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Run Silver Transformation"
+      DTS:CreationName="Microsoft.ExecutePackageTask"
+      DTS:Description="Execute Package Task"
+      DTS:DTSID="{C2506B1B-60D6-4853-A1D4-100D37374EEB}"
+      DTS:ExecutableType="Microsoft.ExecutePackageTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Run Silver Transformation"
+      DTS:TaskContact="Microsoft Corporation; Microsoft SQL Server; Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <ExecutePackageTask>
+          <UseProjectReference>True</UseProjectReference>
+          <PackageName>02_silver_transform 1.dtsx</PackageName>
+        </ExecutePackageTask>
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint]"
+      DTS:CreationName=""
+      DTS:DTSID="{9B93C7CD-1F84-4E60-BBBF-2D6CA1D02D6F}"
+      DTS:From="Package\01_create stg_dwh_database"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint"
+      DTS:To="Package\02_create schemas" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 1]"
+      DTS:CreationName=""
+      DTS:DTSID="{B61DF754-4DEC-416F-9886-16B20D45807A}"
+      DTS:From="Package\02_create schemas"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 1"
+      DTS:To="Package\03_create_bronze_tables" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 2]"
+      DTS:CreationName=""
+      DTS:DTSID="{F0A18E9D-756C-424D-A5AF-D56CE1966870}"
+      DTS:From="Package\03_create_bronze_tables"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 2"
+      DTS:To="Package\04_create_silver_tables" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 3]"
+      DTS:CreationName=""
+      DTS:DTSID="{D2B1E6D0-B1BC-4496-A2D8-B72359B7E426}"
+      DTS:From="Package\04_create_silver_tables"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 3"
+      DTS:To="Package\Run Silver Transformation" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 4]"
+      DTS:CreationName=""
+      DTS:DTSID="{F33A32AC-86A5-4A70-822E-5DCBD265ED06}"
+      DTS:From="Package\Run Silver Transformation"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 4"
+      DTS:To="Package\Run Gold Views" />
+  </DTS:PrecedenceConstraints>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="220,42.6666666666667"
+          Id="Package\01_create stg_dwh_database"
+          TopLeft="47.4999978765846,41.0526311281976" />
+        <NodeLayout
+          Size="172,42.6666666666667"
+          Id="Package\02_create schemas"
+          TopLeft="101.874995445833,119.052630271773" />
+        <NodeLayout
+          Size="200,42.6666666666667"
+          Id="Package\03_create_bronze_tables"
+          TopLeft="140.624993713573,193.543857846124" />
+        <NodeLayout
+          Size="192,42.6666666666667"
+          Id="Package\04_create_silver_tables"
+          TopLeft="211.87499052845,270.947366588003" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint]"
+          TopLeft="157.499997876585,83.7192977948642">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="30.3749975692482,35.3333324769088"
+              Start="0,0"
+              End="30.3749975692482,27.8333324769088">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,13.6666662384544" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,13.6666662384544"
+                    Point2="0,17.6666662384544"
+                    Point3="4,17.6666662384544" />
+                  <mssgle:LineSegment
+                    End="26.3749975692482,17.6666662384544" />
+                  <mssgle:CubicBezierSegment
+                    Point1="26.3749975692482,17.6666662384544"
+                    Point2="30.3749975692482,17.6666662384544"
+                    Point3="30.3749975692482,21.6666662384544" />
+                  <mssgle:LineSegment
+                    End="30.3749975692482,27.8333324769088" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 1]"
+          TopLeft="187.874995445833,161.71929693844">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="52.74999826774,31.824560907684"
+              Start="0,0"
+              End="52.74999826774,24.324560907684">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,11.912280453842" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,11.912280453842"
+                    Point2="0,15.912280453842"
+                    Point3="4,15.912280453842" />
+                  <mssgle:LineSegment
+                    End="48.74999826774,15.912280453842" />
+                  <mssgle:CubicBezierSegment
+                    Point1="48.74999826774,15.912280453842"
+                    Point2="52.74999826774,15.912280453842"
+                    Point3="52.74999826774,19.912280453842" />
+                  <mssgle:LineSegment
+                    End="52.74999826774,24.324560907684" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 2]"
+          TopLeft="240.624993713573,236.21052451279">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="67.2499968148769,34.7368420752131"
+              Start="0,0"
+              End="67.2499968148769,27.2368420752131">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,13.3684210376066" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,13.3684210376066"
+                    Point2="0,17.3684210376066"
+                    Point3="4,17.3684210376066" />
+                  <mssgle:LineSegment
+                    End="63.2499968148769,17.3684210376066" />
+                  <mssgle:CubicBezierSegment
+                    Point1="63.2499968148769,17.3684210376066"
+                    Point2="67.2499968148769,17.3684210376066"
+                    Point3="67.2499968148769,21.3684210376066" />
+                  <mssgle:LineSegment
+                    End="67.2499968148769,27.2368420752131" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <NodeLayout
+          Size="204,42.6666666666667"
+          Id="Package\Run Silver Transformation"
+          TopLeft="220.833323461314,356.929820642385" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 3]"
+          TopLeft="307.87499052845,313.61403325467">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="14.9583329328643,43.3157873877149"
+              Start="0,0"
+              End="14.9583329328643,35.8157873877149">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,17.6578936938574" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,17.6578936938574"
+                    Point2="0,21.6578936938574"
+                    Point3="4,21.6578936938574" />
+                  <mssgle:LineSegment
+                    End="10.9583329328643,21.6578936938574" />
+                  <mssgle:CubicBezierSegment
+                    Point1="10.9583329328643,21.6578936938574"
+                    Point2="14.9583329328643,21.6578936938574"
+                    Point3="14.9583329328643,25.6578936938574" />
+                  <mssgle:LineSegment
+                    End="14.9583329328643,35.8157873877149" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <NodeLayout
+          Size="156,42.6666666666667"
+          Id="Package\Run Gold Views"
+          TopLeft="252.083322064331,450.438591545501" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 4]"
+          TopLeft="326.458322762822,399.596487309051">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,50.8421042364499"
+              Start="0,0"
+              End="0,43.3421042364499">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,43.3421042364499" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>

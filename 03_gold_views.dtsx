@@ -1,0 +1,72 @@
+﻿<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="11/8/2026 2:49:41 AM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="GEENKHENSI"
+  DTS:CreatorName="GEENKHENSI\griff"
+  DTS:DTSID="{F8F4655E-8B71-44C1-B010-20FCD5EDC90C}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="17.0.1016.0"
+  DTS:LocaleID="1033"
+  DTS:ObjectName="Package1"
+  DTS:PackageType="5"
+  DTS:VersionBuild="1"
+  DTS:VersionGUID="{19F74F5A-A945-4FE3-B2ED-7DC73FCF4B32}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[geenkhensi.olist_dwh]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{12349F01-0F10-4E5A-838D-A7675D1692BF}"
+      DTS:ObjectName="geenkhensi.olist_dwh">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=geenkhensi;Initial Catalog=olist_dwh;Provider=SQLOLEDB.1;Integrated Security=SSPI;Application Name=SSIS-Package1-{12349F01-0F10-4E5A-838D-A7675D1692BF}geenkhensi.olist_dwh;Auto Translate=False;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables />
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\SQL-Create Gold Analytical Views"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{DEC1DDEA-9BFE-4AE2-96FE-F527BD9A2ED9}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="SQL-Create Gold Analytical Views"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{12349F01-0F10-4E5A-838D-A7675D1692BF}"
+          SQLTask:SqlStatementSource="USE olist_dwh;&#xA;GO&#xA;&#xA;-- Ensure the gold schema exists&#xA;IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'gold')&#xA;BEGIN&#xA;    EXEC('CREATE SCHEMA gold;')&#xA;END&#xA;GO&#xA;&#xA;-- ==========================================&#xA;-- 1. GOLD: ORDER ITEM DETAILS VIEW&#xA;-- ==========================================&#xA;DROP VIEW IF EXISTS gold.vw_order_item_details;&#xA;GO&#xA;&#xA;CREATE VIEW gold.vw_order_item_details AS&#xA;SELECT &#xA;    o.order_id,&#xA;    o.customer_id,&#xA;    c.customer_city,&#xA;    c.customer_state,&#xA;    o.order_status,&#xA;    o.order_purchase_timestamp,&#xA;    i.order_item_id,&#xA;    i.product_id,&#xA;    p.product_category_name_en,&#xA;    i.seller_id,&#xA;    TRY_CAST(i.price AS DECIMAL(10,2)) AS price,&#xA;    TRY_CAST(i.freight_value AS DECIMAL(10,2)) AS freight_value,&#xA;    TRY_CAST((i.price + i.freight_value) AS DECIMAL(10,2)) AS total_item_value&#xA;FROM silver.fact_orders o&#xA;JOIN silver.fact_order_items i &#xA;    ON o.order_id = i.order_id&#xA;LEFT JOIN silver.dim_customers c &#xA;    ON o.customer_id = c.customer_id&#xA;LEFT JOIN silver.dim_products p &#xA;    ON i.product_id = p.product_id;&#xA;GO&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 2. GOLD: ORDER PAYMENTS SUMMARY VIEW&#xA;-- ==========================================&#xA;DROP VIEW IF EXISTS gold.vw_order_payments_summary;&#xA;GO&#xA;&#xA;CREATE VIEW gold.vw_order_payments_summary AS&#xA;SELECT &#xA;    order_id,&#xA;    COUNT(DISTINCT payment_type) AS payment_type_count,&#xA;    SUM(TRY_CAST(payment_installments AS INT)) AS total_installments,&#xA;    SUM(TRY_CAST(payment_value AS DECIMAL(10,2))) AS total_payment_value&#xA;FROM silver.fact_order_payments&#xA;GROUP BY order_id;&#xA;GO&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 3. GOLD: ORDER REVIEWS SUMMARY VIEW&#xA;-- ==========================================&#xA;DROP VIEW IF EXISTS gold.vw_order_reviews_summary;&#xA;GO&#xA;&#xA;CREATE VIEW gold.vw_order_reviews_summary AS&#xA;SELECT &#xA;    order_id,&#xA;    review_id,&#xA;    TRY_CAST(review_score AS INT) AS review_score,&#xA;    review_comment_title,&#xA;    review_comment_message,&#xA;    review_creation_date&#xA;FROM silver.fact_order_reviews;&#xA;GO&#xA;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph">
+        <NodeLayout
+          Size="242.666666666667,42.6666666666667"
+          Id="Package\SQL-Create Gold Analytical Views"
+          TopLeft="55.6249975133688,62.947367729903" />
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>

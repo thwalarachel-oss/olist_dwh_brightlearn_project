@@ -1,0 +1,200 @@
+﻿<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="11/8/2026 2:49:41 AM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="GEENKHENSI"
+  DTS:CreatorName="GEENKHENSI\griff"
+  DTS:DTSID="{FDB3150F-A852-4E31-93AF-E2D8920C0437}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="17.0.1016.0"
+  DTS:LocaleID="1033"
+  DTS:ObjectName="Package1"
+  DTS:PackageType="5"
+  DTS:VersionBuild="5"
+  DTS:VersionGUID="{D28BF395-367A-4CD2-9D1E-773B7DB57458}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[geenkhensi.olist_dwh]"
+      DTS:CreationName="OLEDB"
+      DTS:DTSID="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+      DTS:ObjectName="geenkhensi.olist_dwh">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=geenkhensi;Initial Catalog=olist_dwh;Provider=SQLOLEDB.1;Integrated Security=SSPI;Application Name=SSIS-Package1-{93B00F77-8362-4493-96DE-81B3B49D917E}geenkhensi.olist_dwh;Auto Translate=False;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables />
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\SQL-Truncate &amp; Load Silver Dimensions (Customers,Products,Sellers,Geolocation)"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{6736EF73-5126-4197-941D-2AD0F2F4ED98}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="SQL-Truncate &amp; Load Silver Dimensions (Customers,Products,Sellers,Geolocation)"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+          SQLTask:SqlStatementSource="USE olist_dwh;&#xA;GO&#xA;&#xA;-- ==========================================&#xA;-- 1. REBUILD PRODUCT CATEGORY TRANSLATION LOOKUP&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.product_category_name_translation;&#xA;&#xA;SELECT DISTINCT&#xA;    LOWER(TRIM(product_category_name)) AS product_category_name,&#xA;    LOWER(TRIM(product_category_name_english)) AS product_category_name_english&#xA;INTO silver.product_category_name_translation&#xA;FROM bronze.product_category_name_translation&#xA;WHERE product_category_name IS NOT NULL;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 2. REBUILD SILVER.DIM_CUSTOMERS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_customers;&#xA;&#xA;SELECT &#xA;    customer_id,&#xA;    customer_unique_id,&#xA;    TRIM(customer_zip_code_prefix) AS customer_zip_code_prefix,&#xA;    LOWER(TRIM(customer_city)) AS customer_city,&#xA;    UPPER(TRIM(customer_state)) AS customer_state&#xA;INTO silver.dim_customers&#xA;FROM bronze.customers;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 3. REBUILD SILVER.DIM_PRODUCTS (WITH ENGLISH TRANSLATION)&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_products;&#xA;&#xA;SELECT &#xA;    p.product_id,&#xA;    LOWER(TRIM(p.product_category_name)) AS product_category_name_pt,&#xA;    COALESCE(t.product_category_name_english, 'uncategorized') AS product_category_name_en,&#xA;    TRY_CAST(p.product_name_lenght AS INT) AS product_name_length,&#xA;    TRY_CAST(p.product_description_lenght AS INT) AS product_description_length,&#xA;    TRY_CAST(p.product_photos_qty AS INT) AS product_photos_qty,&#xA;    TRY_CAST(p.product_weight_g AS INT) AS product_weight_g,&#xA;    TRY_CAST(p.product_length_cm AS INT) AS product_length_cm,&#xA;    TRY_CAST(p.product_height_cm AS INT) AS product_height_cm,&#xA;    TRY_CAST(p.product_width_cm AS INT) AS product_width_cm&#xA;INTO silver.dim_products&#xA;FROM bronze.products p&#xA;LEFT JOIN silver.product_category_name_translation t&#xA;    ON LOWER(TRIM(p.product_category_name)) = t.product_category_name;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 4. REBUILD SILVER.DIM_SELLERS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_sellers;&#xA;&#xA;SELECT &#xA;    seller_id,&#xA;    TRIM(seller_zip_code_prefix) AS seller_zip_code_prefix,&#xA;    LOWER(TRIM(seller_city)) AS seller_city,&#xA;    UPPER(TRIM(seller_state)) AS seller_state&#xA;INTO silver.dim_sellers&#xA;FROM bronze.sellers;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 5. REBUILD SILVER.DIM_GEOLOCATION (DEDUPLICATED)&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_geolocation;&#xA;&#xA;SELECT &#xA;    TRIM(geolocation_zip_code_prefix) AS zip_code_prefix,&#xA;    AVG(TRY_CAST(geolocation_lat AS FLOAT)) AS avg_latitude,&#xA;    AVG(TRY_CAST(geolocation_lng AS FLOAT)) AS avg_longitude,&#xA;    MAX(LOWER(TRIM(geolocation_city))) AS city,&#xA;    MAX(UPPER(TRIM(geolocation_state))) AS state&#xA;INTO silver.dim_geolocation&#xA;FROM bronze.geolocation&#xA;WHERE geolocation_zip_code_prefix IS NOT NULL&#xA;GROUP BY TRIM(geolocation_zip_code_prefix);" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\SQL-Truncate &amp; Load Silver Facts (Payments &amp; Reviews)"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{D86E99C0-32DB-4202-9937-A727CF970063}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="SQL-Truncate &amp; Load Silver Facts (Payments &amp; Reviews)"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+          SQLTask:SqlStatementSource="USE olist_dwh;&#xA;GO&#xA;&#xA;-- ==========================================&#xA;-- 1. REBUILD SILVER.FACT_ORDER_PAYMENTS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.fact_order_payments;&#xA;&#xA;SELECT &#xA;    order_id,&#xA;    TRY_CAST(payment_sequential AS INT) AS payment_sequential,&#xA;    LOWER(TRIM(payment_type)) AS payment_type,&#xA;    TRY_CAST(payment_installments AS INT) AS payment_installments,&#xA;    TRY_CAST(payment_value AS DECIMAL(10,2)) AS payment_value&#xA;INTO silver.fact_order_payments&#xA;FROM bronze.order_payments;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 2. REBUILD SILVER.FACT_ORDER_REVIEWS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.fact_order_reviews;&#xA;&#xA;SELECT &#xA;    review_id,&#xA;    order_id,&#xA;    TRY_CAST(review_score AS INT) AS review_score,&#xA;    NULLIF(TRIM(review_comment_title), '') AS review_comment_title,&#xA;    NULLIF(TRIM(review_comment_message), '') AS review_comment_message,&#xA;    TRY_CAST(review_creation_date AS DATETIME2) AS review_creation_date,&#xA;    TRY_CAST(review_answer_timestamp AS DATETIME2) AS review_answer_timestamp&#xA;INTO silver.fact_order_reviews&#xA;FROM bronze.order_reviews;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\SQL-Truncate&amp;Load Silver Fact(Orders &amp; Items)"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{A0673477-067B-47F3-BBC4-7E79273A374B}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="SQL-Truncate&amp;Load Silver Fact(Orders &amp; Items)"
+      DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+          SQLTask:SqlStatementSource="-- Rebuild fact_orders&#xA;DROP TABLE IF EXISTS silver.fact_orders;&#xA;SELECT &#xA;    order_id, customer_id, LOWER(TRIM(order_status)) AS order_status,&#xA;    TRY_CAST(order_purchase_timestamp AS DATETIME2) AS order_purchase_timestamp,&#xA;    TRY_CAST(order_approved_at AS DATETIME2) AS order_approved_at,&#xA;    TRY_CAST(order_delivered_carrier_date AS DATETIME2) AS order_delivered_carrier_date,&#xA;    TRY_CAST(order_delivered_customer_date AS DATETIME2) AS order_delivered_customer_date,&#xA;    TRY_CAST(order_estimated_delivery_date AS DATETIME2) AS order_estimated_delivery_date&#xA;INTO silver.fact_orders&#xA;FROM bronze.orders;&#xA;&#xA;-- Rebuild fact_order_items&#xA;DROP TABLE IF EXISTS silver.fact_order_items;&#xA;SELECT &#xA;    order_id, TRY_CAST(order_item_id AS INT) AS order_item_id,&#xA;    product_id, seller_id,&#xA;    TRY_CAST(shipping_limit_date AS DATETIME2) AS shipping_limit_date,&#xA;    TRY_CAST(price AS DECIMAL(10,2)) AS price,&#xA;    TRY_CAST(freight_value AS DECIMAL(10,2)) AS freight_value&#xA;INTO silver.fact_order_items&#xA;FROM bronze.order_items;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint]"
+      DTS:CreationName=""
+      DTS:DTSID="{88CE807C-75D2-4776-A4D1-12388D93B7BD}"
+      DTS:From="Package\SQL-Truncate&amp;Load Silver Fact(Orders &amp; Items)"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint"
+      DTS:To="Package\SQL-Truncate &amp; Load Silver Facts (Payments &amp; Reviews)" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 1]"
+      DTS:CreationName=""
+      DTS:DTSID="{2DE9F0F3-80F0-4760-8F9C-D0FBB009D2AD}"
+      DTS:From="Package\SQL-Truncate &amp; Load Silver Facts (Payments &amp; Reviews)"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 1"
+      DTS:To="Package\SQL-Truncate &amp; Load Silver Dimensions (Customers,Products,Sellers,Geolocation)" />
+  </DTS:PrecedenceConstraints>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="309.333333333334,42.6666666666667"
+          Id="Package\SQL-Truncate&amp;Load Silver Fact(Orders &amp; Items)"
+          TopLeft="33.7499984912575,34.2105259401647" />
+        <NodeLayout
+          Size="352,42.6666666666667"
+          Id="Package\SQL-Truncate &amp; Load Silver Facts (Payments &amp; Reviews)"
+          TopLeft="124.374994440004,100.578946264084" />
+        <NodeLayout
+          Size="473.333333333334,42.6666666666667"
+          Id="Package\SQL-Truncate &amp; Load Silver Dimensions (Customers,Products,Sellers,Geolocation)"
+          TopLeft="163.124996284023,190.140349104244" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint]"
+          TopLeft="188.416665157924,76.8771926068313">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="111.95832928208,23.7017536572528"
+              Start="0,0"
+              End="111.95832928208,16.2017536572528">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,7.85087682862638" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,7.85087682862638"
+                    Point2="0,11.8508768286264"
+                    Point3="4,11.8508768286264" />
+                  <mssgle:LineSegment
+                    End="107.95832928208,11.8508768286264" />
+                  <mssgle:CubicBezierSegment
+                    Point1="107.95832928208,11.8508768286264"
+                    Point2="111.95832928208,11.8508768286264"
+                    Point3="111.95832928208,15.8508768286264" />
+                  <mssgle:LineSegment
+                    End="111.95832928208,16.2017536572528" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 1]"
+          TopLeft="300.374994440004,143.245612930751">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="99.4166685106852,46.894736173493"
+              Start="0,0"
+              End="99.4166685106852,39.394736173493">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,19.4473680867465" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,19.4473680867465"
+                    Point2="0,23.4473680867465"
+                    Point3="4,23.4473680867465" />
+                  <mssgle:LineSegment
+                    End="95.4166685106852,23.4473680867465" />
+                  <mssgle:CubicBezierSegment
+                    Point1="95.4166685106852,23.4473680867465"
+                    Point2="99.4166685106852,23.4473680867465"
+                    Point3="99.4166685106852,27.4473680867465" />
+                  <mssgle:LineSegment
+                    End="99.4166685106852,39.394736173493" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>

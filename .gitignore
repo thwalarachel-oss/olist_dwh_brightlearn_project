@@ -1,0 +1,9 @@
+﻿bin/
+obj/
+*.user
+*.suo
+*.cache
+*.csv
+*.bak
+*.mdf
+*.ldf
