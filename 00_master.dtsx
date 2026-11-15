@@ -11,8 +11,8 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-  DTS:VersionBuild="14"
-  DTS:VersionGUID="{318B2C83-13CA-4060-BCB3-DB3FCE5D68CC}">
+  DTS:VersionBuild="20"
+  DTS:VersionGUID="{F3444CA8-8160-4001-8CC7-E4A9E5B11EB8}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -86,7 +86,7 @@
       DTS:refId="Package\04_create_silver_tables"
       DTS:CreationName="Microsoft.ExecuteSQLTask"
       DTS:Description="Execute SQL Task"
-      DTS:DTSID="{7290E6BA-52A5-4822-85B8-354F93CEBD06}"
+      DTS:DTSID="{6196DB03-C201-429D-877A-CD6DC500CC40}"
       DTS:ExecutableType="Microsoft.ExecuteSQLTask"
       DTS:LocaleID="-1"
       DTS:ObjectName="04_create_silver_tables"
@@ -100,13 +100,30 @@
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
-      DTS:refId="Package\Run Gold Views"
+      DTS:refId="Package\load_bronze_tables"
       DTS:CreationName="Microsoft.ExecutePackageTask"
       DTS:Description="Execute Package Task"
-      DTS:DTSID="{E1E87F25-622F-4084-AFB3-F1F95BA5B9F4}"
+      DTS:DTSID="{1B84305E-F440-4C8C-804B-2E8EC0E93358}"
       DTS:ExecutableType="Microsoft.ExecutePackageTask"
       DTS:LocaleID="-1"
-      DTS:ObjectName="Run Gold Views"
+      DTS:ObjectName="load_bronze_tables"
+      DTS:TaskContact="Microsoft Corporation; Microsoft SQL Server; Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <ExecutePackageTask>
+          <UseProjectReference>True</UseProjectReference>
+          <PackageName>01_bronze_load.dtsx</PackageName>
+        </ExecutePackageTask>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\run_gold_views"
+      DTS:CreationName="Microsoft.ExecutePackageTask"
+      DTS:Description="Execute Package Task"
+      DTS:DTSID="{55990F65-E38D-428B-97A8-37C23CCC0204}"
+      DTS:ExecutableType="Microsoft.ExecutePackageTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="run_gold_views"
       DTS:TaskContact="Microsoft Corporation; Microsoft SQL Server; Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
       <DTS:Variables />
       <DTS:ObjectData>
@@ -117,13 +134,13 @@
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
-      DTS:refId="Package\Run Silver Transformation"
+      DTS:refId="Package\run_silver_transformation"
       DTS:CreationName="Microsoft.ExecutePackageTask"
       DTS:Description="Execute Package Task"
-      DTS:DTSID="{C2506B1B-60D6-4853-A1D4-100D37374EEB}"
+      DTS:DTSID="{D2B09C61-614B-46F0-B8CE-8ABA66282A4B}"
       DTS:ExecutableType="Microsoft.ExecutePackageTask"
       DTS:LocaleID="-1"
-      DTS:ObjectName="Run Silver Transformation"
+      DTS:ObjectName="run_silver_transformation"
       DTS:TaskContact="Microsoft Corporation; Microsoft SQL Server; Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
       <DTS:Variables />
       <DTS:ObjectData>
@@ -154,27 +171,35 @@
     <DTS:PrecedenceConstraint
       DTS:refId="Package.PrecedenceConstraints[Constraint 2]"
       DTS:CreationName=""
-      DTS:DTSID="{F0A18E9D-756C-424D-A5AF-D56CE1966870}"
-      DTS:From="Package\03_create_bronze_tables"
+      DTS:DTSID="{55509625-0F1F-40E8-A779-01059B1AAAC9}"
+      DTS:From="Package\04_create_silver_tables"
       DTS:LogicalAnd="True"
       DTS:ObjectName="Constraint 2"
-      DTS:To="Package\04_create_silver_tables" />
+      DTS:To="Package\load_bronze_tables" />
     <DTS:PrecedenceConstraint
       DTS:refId="Package.PrecedenceConstraints[Constraint 3]"
       DTS:CreationName=""
-      DTS:DTSID="{D2B1E6D0-B1BC-4496-A2D8-B72359B7E426}"
-      DTS:From="Package\04_create_silver_tables"
+      DTS:DTSID="{198707A1-E984-4831-B898-D59313A8B4CB}"
+      DTS:From="Package\load_bronze_tables"
       DTS:LogicalAnd="True"
       DTS:ObjectName="Constraint 3"
-      DTS:To="Package\Run Silver Transformation" />
+      DTS:To="Package\run_silver_transformation" />
     <DTS:PrecedenceConstraint
       DTS:refId="Package.PrecedenceConstraints[Constraint 4]"
       DTS:CreationName=""
-      DTS:DTSID="{F33A32AC-86A5-4A70-822E-5DCBD265ED06}"
-      DTS:From="Package\Run Silver Transformation"
+      DTS:DTSID="{2A91E44A-D062-44F9-9A9A-F41C6B44262D}"
+      DTS:From="Package\run_silver_transformation"
       DTS:LogicalAnd="True"
       DTS:ObjectName="Constraint 4"
-      DTS:To="Package\Run Gold Views" />
+      DTS:To="Package\run_gold_views" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 5]"
+      DTS:CreationName=""
+      DTS:DTSID="{580F8AEC-124D-4FDA-8381-EC0693624DC8}"
+      DTS:From="Package\03_create_bronze_tables"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 5"
+      DTS:To="Package\04_create_silver_tables" />
   </DTS:PrecedenceConstraints>
   <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
 <!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
@@ -200,10 +225,6 @@
           Size="200,42.6666666666667"
           Id="Package\03_create_bronze_tables"
           TopLeft="140.624993713573,193.543857846124" />
-        <NodeLayout
-          Size="192,42.6666666666667"
-          Id="Package\04_create_silver_tables"
-          TopLeft="211.87499052845,270.947366588003" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint]"
           TopLeft="157.499997876585,83.7192977948642">
@@ -272,32 +293,44 @@
             <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
+        <NodeLayout
+          Size="173.333333333334,42.6666666666667"
+          Id="Package\load_bronze_tables"
+          TopLeft="179.166658657293,352.368417183696" />
+        <NodeLayout
+          Size="200.666666666667,42.6666666666667"
+          Id="Package\run_silver_transformation"
+          TopLeft="183.333325137695,448.157889816157" />
+        <NodeLayout
+          Size="192,42.6666666666667"
+          Id="Package\04_create_silver_tables"
+          TopLeft="156.249993015081,274.824558385989" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint 2]"
-          TopLeft="240.624993713573,236.21052451279">
+          TopLeft="252.249993015081,317.491225052656">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="67.2499968148769,34.7368420752131"
+              EndConnector="13.5833323088786,34.8771921310396"
               Start="0,0"
-              End="67.2499968148769,27.2368420752131">
+              End="13.5833323088786,27.3771921310396">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,13.3684210376066" />
+                    End="0,13.4385960655198" />
                   <mssgle:CubicBezierSegment
-                    Point1="0,13.3684210376066"
-                    Point2="0,17.3684210376066"
-                    Point3="4,17.3684210376066" />
+                    Point1="0,13.4385960655198"
+                    Point2="0,17.4385960655198"
+                    Point3="4,17.4385960655198" />
                   <mssgle:LineSegment
-                    End="63.2499968148769,17.3684210376066" />
+                    End="9.58333230887862,17.4385960655198" />
                   <mssgle:CubicBezierSegment
-                    Point1="63.2499968148769,17.3684210376066"
-                    Point2="67.2499968148769,17.3684210376066"
-                    Point3="67.2499968148769,21.3684210376066" />
+                    Point1="9.58333230887862,17.4385960655198"
+                    Point2="13.5833323088786,17.4385960655198"
+                    Point3="13.5833323088786,21.4385960655198" />
                   <mssgle:LineSegment
-                    End="67.2499968148769,27.2368420752131" />
+                    End="13.5833323088786,27.3771921310396" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -306,36 +339,32 @@
             <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
-        <NodeLayout
-          Size="204,42.6666666666667"
-          Id="Package\Run Silver Transformation"
-          TopLeft="220.833323461314,356.929820642385" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint 3]"
-          TopLeft="307.87499052845,313.61403325467">
+          TopLeft="265.833325323959,395.035083850362">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="14.9583329328643,43.3157873877149"
+              EndConnector="17.8333331470687,53.1228059657946"
               Start="0,0"
-              End="14.9583329328643,35.8157873877149">
+              End="17.8333331470687,45.6228059657946">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,17.6578936938574" />
+                    End="0,22.5614029828973" />
                   <mssgle:CubicBezierSegment
-                    Point1="0,17.6578936938574"
-                    Point2="0,21.6578936938574"
-                    Point3="4,21.6578936938574" />
+                    Point1="0,22.5614029828973"
+                    Point2="0,26.5614029828973"
+                    Point3="4,26.5614029828973" />
                   <mssgle:LineSegment
-                    End="10.9583329328643,21.6578936938574" />
+                    End="13.8333331470687,26.5614029828973" />
                   <mssgle:CubicBezierSegment
-                    Point1="10.9583329328643,21.6578936938574"
-                    Point2="14.9583329328643,21.6578936938574"
-                    Point3="14.9583329328643,25.6578936938574" />
+                    Point1="13.8333331470687,26.5614029828973"
+                    Point2="17.8333331470687,26.5614029828973"
+                    Point3="17.8333331470687,30.5614029828973" />
                   <mssgle:LineSegment
-                    End="14.9583329328643,35.8157873877149" />
+                    End="17.8333331470687,45.6228059657946" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -345,23 +374,57 @@
           </EdgeLayout.Labels>
         </EdgeLayout>
         <NodeLayout
-          Size="156,42.6666666666667"
-          Id="Package\Run Gold Views"
-          TopLeft="252.083322064331,450.438591545501" />
+          Size="153.333333333334,42.6666666666667"
+          Id="Package\run_gold_views"
+          TopLeft="213.541657120611,549.649116771979" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint 4]"
-          TopLeft="326.458322762822,399.596487309051">
+          TopLeft="286.937491129153,490.824556482824">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="0,50.8421042364499"
+              EndConnector="0,58.8245602891551"
               Start="0,0"
-              End="0,43.3421042364499">
+              End="0,51.3245602891551">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,43.3421042364499" />
+                    End="0,51.3245602891551" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 5]"
+          TopLeft="240.624993713573,236.210524512791">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="11.6249993015078,38.6140338731987"
+              Start="0,0"
+              End="11.6249993015078,31.1140338731987">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,15.3070169365994" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,15.3070169365994"
+                    Point2="0,19.3070169365994"
+                    Point3="4,19.3070169365994" />
+                  <mssgle:LineSegment
+                    End="7.62499930150784,19.3070169365994" />
+                  <mssgle:CubicBezierSegment
+                    Point1="7.62499930150784,19.3070169365994"
+                    Point2="11.6249993015078,19.3070169365994"
+                    Point3="11.6249993015078,23.3070169365994" />
+                  <mssgle:LineSegment
+                    End="11.6249993015078,31.1140338731987" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
