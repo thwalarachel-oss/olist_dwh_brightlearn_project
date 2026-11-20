@@ -1,121 +1,75 @@
-/* ============================================================================
-   Project: Olist E-Commerce Data Warehouse (SSIS Medallion)
-   File: sql/03_gold_analytics_queries.sql
-   Purpose: 8 Business Analytics Queries Answered Exclusively from Gold Layer
-   ============================================================================ */
-
 USE olist_dwh;
-go
-
--- ============================================================================
--- QUERY 1: Total Revenue and Freight Cost by Product Category (Top 10)
--- ============================================================================
-SELECT TOP 10 
-    COALESCE(p.product_category_en, 'Unknown') AS product_category,
-    COUNT(DISTINCT s.order_id) AS total_orders,
-    SUM(s.price) AS total_revenue,
-    SUM(s.freight_value) AS total_freight,
-    AVG(s.delivery_days) AS avg_delivery_days
-FROM gold.fact_sales s
-JOIN gold.dim_product p ON s.product_key = p.product_key
-GROUP BY p.product_category_en
-ORDER BY total_revenue DESC;
 GO
 
--- ============================================================================
--- QUERY 2: Monthly Sales Performance & Order Volume Trends
--- ============================================================================
-SELECT 
-    d.year,
-    d.month,
-    d.month_name,
-    COUNT(DISTINCT s.order_id) AS monthly_orders,
-    SUM(s.price) AS monthly_revenue
-FROM gold.fact_sales s
-JOIN gold.dim_date d ON s.order_date_key = d.date_key
-GROUP BY d.year, d.month, d.month_name
-ORDER BY d.year, d.month;
+-- Ensure the gold schema exists
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'gold')
+BEGIN
+    EXEC('CREATE SCHEMA gold;')
+END
 GO
 
--- ============================================================================
--- QUERY 3: Customer Distribution and Revenue by State
--- ============================================================================
+-- ==========================================
+-- 1. GOLD: ORDER ITEM DETAILS VIEW
+-- ==========================================
+DROP VIEW IF EXISTS gold.vw_order_item_details;
+GO
+
+CREATE VIEW gold.vw_order_item_details AS
 SELECT 
+    o.order_id,
+    o.customer_id,
+    c.customer_city,
     c.customer_state,
-    COUNT(DISTINCT c.customer_unique_id) AS total_unique_customers,
-    COUNT(DISTINCT s.order_id) AS total_orders,
-    SUM(s.price) AS state_revenue
-FROM gold.fact_sales s
-JOIN gold.dim_customer c ON s.customer_key = c.customer_key
-GROUP BY c.customer_state
-ORDER BY state_revenue DESC;
+    o.order_status,
+    o.order_purchase_timestamp,
+    i.order_item_id,
+    i.product_id,
+    p.product_category_name_en,
+    i.seller_id,
+    TRY_CAST(i.price AS DECIMAL(10,2)) AS price,
+    TRY_CAST(i.freight_value AS DECIMAL(10,2)) AS freight_value,
+    TRY_CAST((i.price + i.freight_value) AS DECIMAL(10,2)) AS total_item_value
+FROM silver.fact_orders o
+JOIN silver.fact_order_items i 
+    ON o.order_id = i.order_id
+LEFT JOIN silver.dim_customers c 
+    ON o.customer_id = c.customer_id
+LEFT JOIN silver.dim_products p 
+    ON i.product_id = p.product_id;
 GO
 
--- ============================================================================
--- QUERY 4: Average Delivery Delay vs. Promised Delivery Date by State
--- ============================================================================
+
+-- ==========================================
+-- 2. GOLD: ORDER PAYMENTS SUMMARY VIEW
+-- ==========================================
+DROP VIEW IF EXISTS gold.vw_order_payments_summary;
+GO
+
+CREATE VIEW gold.vw_order_payments_summary AS
 SELECT 
-    c.customer_state,
-    COUNT(s.order_id) AS delivered_orders,
-    AVG(CAST(s.delivery_days AS FLOAT)) AS avg_actual_delivery_days,
-    AVG(CAST(s.delivery_delay_days AS FLOAT)) AS avg_delivery_delay_days
-FROM gold.fact_sales s
-JOIN gold.dim_customer c ON s.customer_key = c.customer_key
-WHERE s.order_status = 'delivered'
-GROUP BY c.customer_state
-ORDER BY avg_delivery_delay_days DESC;
+    order_id,
+    COUNT(DISTINCT payment_type) AS payment_type_count,
+    SUM(TRY_CAST(payment_installments AS INT)) AS total_installments,
+    SUM(TRY_CAST(payment_value AS DECIMAL(10,2))) AS total_payment_value
+FROM silver.fact_order_payments
+GROUP BY order_id;
 GO
 
--- ============================================================================
--- QUERY 5: Payment Methods Breakdown & Installment Analysis
--- ============================================================================
+
+-- ==========================================
+-- 3. GOLD: ORDER REVIEWS SUMMARY VIEW
+-- ==========================================
+DROP VIEW IF EXISTS gold.vw_order_reviews_summary;
+GO
+
+CREATE VIEW gold.vw_order_reviews_summary AS
 SELECT 
-    p.payment_type,
-    COUNT(DISTINCT p.order_id) AS total_orders,
-    AVG(p.payment_installments) AS avg_installments,
-    SUM(p.payment_value) AS total_payment_value,
-    (SUM(p.payment_value) * 100.0 / SUM(SUM(p.payment_value)) OVER()) AS revenue_percentage
-FROM gold.fact_payments p
-GROUP BY p.payment_type
-ORDER BY total_payment_value DESC;
+    order_id,
+    review_id,
+    TRY_CAST(review_score AS INT) AS review_score,
+    review_comment_title,
+    review_comment_message,
+    review_creation_date
+FROM silver.fact_order_reviews;
 GO
 
--- ============================================================================
--- QUERY 6: Customer Review Scores & Satisfaction Analysis
--- ============================================================================
-SELECT 
-    r.review_score,
-    COUNT(DISTINCT r.order_id) AS total_orders_reviewed,
-    (COUNT(DISTINCT r.order_id) * 100.0 / SUM(COUNT(DISTINCT r.order_id)) OVER()) AS review_percentage
-FROM gold.fact_reviews r
-GROUP BY r.review_score
-ORDER BY r.review_score DESC;
-GO
-
--- ============================================================================
--- QUERY 7: Top 10 Performing Sellers by Revenue
--- ============================================================================
-SELECT TOP 10 
-    sl.seller_id,
-    sl.seller_city,
-    sl.seller_state,
-    COUNT(DISTINCT s.order_id) AS total_orders_fulfilled,
-    SUM(s.price) AS total_seller_revenue
-FROM gold.fact_sales s
-JOIN gold.dim_seller sl ON s.seller_key = sl.seller_key
-GROUP BY sl.seller_id, sl.seller_city, sl.seller_state
-ORDER BY total_seller_revenue DESC;
-GO
-
--- ============================================================================
--- QUERY 8: Weekend vs. Weekday Order Volume & Revenue Patterns
--- ============================================================================
-SELECT 
-    CASE WHEN d.is_weekend = 1 THEN 'Weekend' ELSE 'Weekday' END AS day_type,
-    COUNT(DISTINCT s.order_id) AS total_orders,
-    SUM(s.price) AS total_revenue,
-    AVG(s.price) AS avg_order_item_price
-FROM gold.fact_sales s
-JOIN gold.dim_date d ON s.order_date_key = d.date_key
-GROUP BY d.is_weekend;
-GO
