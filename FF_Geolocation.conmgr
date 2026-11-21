@@ -3,6 +3,8 @@
   DTS:ObjectName="FF_Geolocation"
   DTS:DTSID="{49379E0B-E6EC-4E56-81F8-149D43E4B3B1}"
   DTS:CreationName="FLATFILE">
+  <DTS:PropertyExpression
+    DTS:Name="ConnectionString">@[$Project::CsvFolderPath] + "\\olist_geolocation_dataset.csv"</DTS:PropertyExpression>
   <DTS:ObjectData>
     <DTS:ConnectionManager
       DTS:Format="Delimited"

@@ -3,6 +3,8 @@
   DTS:ObjectName="FF_Product_Category_Name_Translation"
   DTS:DTSID="{CA82F783-1D49-4B83-B5E1-5C73339074EE}"
   DTS:CreationName="FLATFILE">
+  <DTS:PropertyExpression
+    DTS:Name="ConnectionString">@[$Project::CsvFolderPath] + "\\product_category_name_translation.csv"</DTS:PropertyExpression>
   <DTS:ObjectData>
     <DTS:ConnectionManager
       DTS:Format="Delimited"

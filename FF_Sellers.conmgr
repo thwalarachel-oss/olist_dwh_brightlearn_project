@@ -3,6 +3,8 @@
   DTS:ObjectName="FF_Sellers"
   DTS:DTSID="{7185FC23-7B17-4AFC-B3D4-914BFC8212CC}"
   DTS:CreationName="FLATFILE">
+  <DTS:PropertyExpression
+    DTS:Name="ConnectionString">@[$Project::CsvFolderPath] + "\\olist_sellers_dataset.csv"</DTS:PropertyExpression>
   <DTS:ObjectData>
     <DTS:ConnectionManager
       DTS:Format="Delimited"

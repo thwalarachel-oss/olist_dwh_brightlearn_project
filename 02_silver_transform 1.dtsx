@@ -11,24 +11,10 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package1"
   DTS:PackageType="5"
-  DTS:VersionBuild="6"
-  DTS:VersionGUID="{1720B342-D862-40C9-BB78-036117887582}">
+  DTS:VersionBuild="13"
+  DTS:VersionGUID="{08C04902-E844-4AD5-A9D4-890C748AAA5C}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
-  <DTS:ConnectionManagers>
-    <DTS:ConnectionManager
-      DTS:refId="Package.ConnectionManagers[geenkhensi.olist_dwh]"
-      DTS:CreationName="OLEDB"
-      DTS:DTSID="{93B00F77-8362-4493-96DE-81B3B49D917E}"
-      DTS:ObjectName="geenkhensi.olist_dwh">
-      <DTS:ObjectData>
-        <DTS:ConnectionManager
-          DTS:ConnectRetryCount="1"
-          DTS:ConnectRetryInterval="5"
-          DTS:ConnectionString="Data Source=geenkhensi;Initial Catalog=olist_dwh;Provider=SQLOLEDB.1;Integrated Security=SSPI;Application Name=SSIS-Package1-{93B00F77-8362-4493-96DE-81B3B49D917E}geenkhensi.olist_dwh;Auto Translate=False;" />
-      </DTS:ObjectData>
-    </DTS:ConnectionManager>
-  </DTS:ConnectionManagers>
   <DTS:Variables />
   <DTS:Executables>
     <DTS:Executable
@@ -44,7 +30,7 @@
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
-          SQLTask:Connection="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+          SQLTask:Connection="{EEA5E0FE-7775-4491-B879-76D826DA1D3C}"
           SQLTask:SqlStatementSource="USE olist_dwh;&#xA;GO&#xA;&#xA;-- ==========================================&#xA;-- 1. REBUILD PRODUCT CATEGORY TRANSLATION LOOKUP&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.product_category_name_translation;&#xA;&#xA;SELECT DISTINCT&#xA;    LOWER(TRIM(product_category_name)) AS product_category_name,&#xA;    LOWER(TRIM(product_category_name_english)) AS product_category_name_english&#xA;INTO silver.product_category_name_translation&#xA;FROM bronze.product_category_name_translation&#xA;WHERE product_category_name IS NOT NULL;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 2. REBUILD SILVER.DIM_CUSTOMERS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_customers;&#xA;&#xA;SELECT &#xA;    customer_id,&#xA;    customer_unique_id,&#xA;    TRIM(customer_zip_code_prefix) AS customer_zip_code_prefix,&#xA;    LOWER(TRIM(customer_city)) AS customer_city,&#xA;    UPPER(TRIM(customer_state)) AS customer_state&#xA;INTO silver.dim_customers&#xA;FROM bronze.customers;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 3. REBUILD SILVER.DIM_PRODUCTS (WITH ENGLISH TRANSLATION)&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_products;&#xA;&#xA;SELECT &#xA;    p.product_id,&#xA;    LOWER(TRIM(p.product_category_name)) AS product_category_name_pt,&#xA;    COALESCE(t.product_category_name_english, 'uncategorized') AS product_category_name_en,&#xA;    TRY_CAST(p.product_name_lenght AS INT) AS product_name_length,&#xA;    TRY_CAST(p.product_description_lenght AS INT) AS product_description_length,&#xA;    TRY_CAST(p.product_photos_qty AS INT) AS product_photos_qty,&#xA;    TRY_CAST(p.product_weight_g AS INT) AS product_weight_g,&#xA;    TRY_CAST(p.product_length_cm AS INT) AS product_length_cm,&#xA;    TRY_CAST(p.product_height_cm AS INT) AS product_height_cm,&#xA;    TRY_CAST(p.product_width_cm AS INT) AS product_width_cm&#xA;INTO silver.dim_products&#xA;FROM bronze.products p&#xA;LEFT JOIN silver.product_category_name_translation t&#xA;    ON LOWER(TRIM(p.product_category_name)) = t.product_category_name;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 4. REBUILD SILVER.DIM_SELLERS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_sellers;&#xA;&#xA;SELECT &#xA;    seller_id,&#xA;    TRIM(seller_zip_code_prefix) AS seller_zip_code_prefix,&#xA;    LOWER(TRIM(seller_city)) AS seller_city,&#xA;    UPPER(TRIM(seller_state)) AS seller_state&#xA;INTO silver.dim_sellers&#xA;FROM bronze.sellers;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 5. REBUILD SILVER.DIM_GEOLOCATION (DEDUPLICATED)&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.dim_geolocation;&#xA;&#xA;SELECT &#xA;    TRIM(geolocation_zip_code_prefix) AS zip_code_prefix,&#xA;    AVG(TRY_CAST(geolocation_lat AS FLOAT)) AS avg_latitude,&#xA;    AVG(TRY_CAST(geolocation_lng AS FLOAT)) AS avg_longitude,&#xA;    MAX(LOWER(TRIM(geolocation_city))) AS city,&#xA;    MAX(UPPER(TRIM(geolocation_state))) AS state&#xA;INTO silver.dim_geolocation&#xA;FROM bronze.geolocation&#xA;WHERE geolocation_zip_code_prefix IS NOT NULL&#xA;GROUP BY TRIM(geolocation_zip_code_prefix);" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
@@ -61,7 +47,7 @@
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
-          SQLTask:Connection="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+          SQLTask:Connection="{EEA5E0FE-7775-4491-B879-76D826DA1D3C}"
           SQLTask:SqlStatementSource="USE olist_dwh;&#xA;GO&#xA;&#xA;-- ==========================================&#xA;-- 1. REBUILD SILVER.FACT_ORDER_PAYMENTS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.fact_order_payments;&#xA;&#xA;SELECT &#xA;    order_id,&#xA;    TRY_CAST(payment_sequential AS INT) AS payment_sequential,&#xA;    LOWER(TRIM(payment_type)) AS payment_type,&#xA;    TRY_CAST(payment_installments AS INT) AS payment_installments,&#xA;    TRY_CAST(payment_value AS DECIMAL(10,2)) AS payment_value&#xA;INTO silver.fact_order_payments&#xA;FROM bronze.order_payments;&#xA;&#xA;&#xA;-- ==========================================&#xA;-- 2. REBUILD SILVER.FACT_ORDER_REVIEWS&#xA;-- ==========================================&#xA;DROP TABLE IF EXISTS silver.fact_order_reviews;&#xA;&#xA;SELECT &#xA;    review_id,&#xA;    order_id,&#xA;    TRY_CAST(review_score AS INT) AS review_score,&#xA;    NULLIF(TRIM(review_comment_title), '') AS review_comment_title,&#xA;    NULLIF(TRIM(review_comment_message), '') AS review_comment_message,&#xA;    TRY_CAST(review_creation_date AS DATETIME2) AS review_creation_date,&#xA;    TRY_CAST(review_answer_timestamp AS DATETIME2) AS review_answer_timestamp&#xA;INTO silver.fact_order_reviews&#xA;FROM bronze.order_reviews;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
@@ -78,7 +64,7 @@
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
-          SQLTask:Connection="{93B00F77-8362-4493-96DE-81B3B49D917E}"
+          SQLTask:Connection="{EEA5E0FE-7775-4491-B879-76D826DA1D3C}"
           SQLTask:SqlStatementSource="-- Rebuild fact_orders&#xA;DROP TABLE IF EXISTS silver.fact_orders;&#xA;SELECT &#xA;    order_id, customer_id, LOWER(TRIM(order_status)) AS order_status,&#xA;    TRY_CAST(order_purchase_timestamp AS DATETIME2) AS order_purchase_timestamp,&#xA;    TRY_CAST(order_approved_at AS DATETIME2) AS order_approved_at,&#xA;    TRY_CAST(order_delivered_carrier_date AS DATETIME2) AS order_delivered_carrier_date,&#xA;    TRY_CAST(order_delivered_customer_date AS DATETIME2) AS order_delivered_customer_date,&#xA;    TRY_CAST(order_estimated_delivery_date AS DATETIME2) AS order_estimated_delivery_date&#xA;INTO silver.fact_orders&#xA;FROM bronze.orders;&#xA;&#xA;-- Rebuild fact_order_items&#xA;DROP TABLE IF EXISTS silver.fact_order_items;&#xA;SELECT &#xA;    order_id, TRY_CAST(order_item_id AS INT) AS order_item_id,&#xA;    product_id, seller_id,&#xA;    TRY_CAST(shipping_limit_date AS DATETIME2) AS shipping_limit_date,&#xA;    TRY_CAST(price AS DECIMAL(10,2)) AS price,&#xA;    TRY_CAST(freight_value AS DECIMAL(10,2)) AS freight_value&#xA;INTO silver.fact_order_items&#xA;FROM bronze.order_items;&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
       </DTS:ObjectData>
     </DTS:Executable>
@@ -114,17 +100,17 @@
       <GraphLayout
         Capacity="8" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
         <NodeLayout
-          Size="309.333333333334,42.6666666666667"
-          Id="Package\SQL-Truncate&amp;Load Silver Fact(Orders &amp; Items)"
-          TopLeft="33.7499984912575,34.2105259401647" />
+          Size="473.333333333334,42.6666666666667"
+          Id="Package\SQL-Truncate &amp; Load Silver Dimensions (Customers,Products,Sellers,Geolocation)"
+          TopLeft="163.124996284023,190.140349104244" />
         <NodeLayout
           Size="352,42.6666666666667"
           Id="Package\SQL-Truncate &amp; Load Silver Facts (Payments &amp; Reviews)"
           TopLeft="124.374994440004,100.578946264084" />
         <NodeLayout
-          Size="473.333333333334,42.6666666666667"
-          Id="Package\SQL-Truncate &amp; Load Silver Dimensions (Customers,Products,Sellers,Geolocation)"
-          TopLeft="163.124996284023,190.140349104244" />
+          Size="309.333333333334,42.6666666666667"
+          Id="Package\SQL-Truncate&amp;Load Silver Fact(Orders &amp; Items)"
+          TopLeft="33.7499984912575,34.2105259401647" />
         <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint]"
           TopLeft="188.416665157924,76.8771926068313">
