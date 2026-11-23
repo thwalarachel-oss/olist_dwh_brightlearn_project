@@ -29,34 +29,26 @@ The pipeline follows the **Medallion Architecture** (`Bronze → Silver → Gold
 
 ```mermaid
 flowchart LR
-    subgraph SRC["📂 Source Layer (9 Raw CSVs)"]
-        CSV["customers, orders, order_items,<br/>order_payments, order_reviews,<br/>products, sellers, geolocation,<br/>category_translation"]
+    CSV["Source CSVs (Olist)"] -->|"01_bronze_load.dtsx"| B_TBL["Bronze Layer (Raw Tables)"]
+    B_TBL -->|"02_silver_transform.dtsx"| S_TBL["Silver Layer (Cleansed & Conformed)"]
+
+    subgraph GLD["Gold Layer (Star Schema)"]
+        DIMS["Dimensions<br/>dim_customers (SCD2), dim_products, dim_sellers, dim_geolocation"]
+        FACTS["Facts<br/>fact_order_items, fact_order_payments, fact_order_reviews"]
     end
 
-    subgraph BRZ["🥉 Bronze Layer (Raw Staging)"]
-        B_TBL["bronze.*<br/>Untouched raw ingestion<br/>+ load_timestamp & source_file"]
-    end
+    S_TBL -->|"03_gold_views.dtsx / SQL"| DIMS
+    S_TBL -->|"03_gold_views.dtsx / SQL"| FACTS
+    DIMS --> FACTS
 
-    subgraph SLV["🥈 Silver Layer (Cleansed & Conformed)"]
-        S_TBL["silver.*<br/>snake_case standardization,<br/>type casting, ZIP deduplication,<br/>Portuguese → English translation"]
-    end
-
-    subgraph GLD["🥇 Gold Layer (Star Schema)"]
-        DIMS["Dimensions<br/>dim_customer (SCD2), dim_product,<br/>dim_seller, dim_geolocation, dim_date<br/>(-1 Unknown Member Rows)"]
-        FACTS["Facts<br/>fact_sales (Order-Item Grain)<br/>fact_payments (Order Grain)<br/>fact_reviews (Order Grain)"]
-    end
-
-    subgraph BI["📊 Analytics & Validation"]
-        DQ["10 Automated Data Quality Tests"]
-        SQL["8 Gold Business Analytics Queries"]
+    subgraph BI["Analytics & Validation"]
+        DQ["10 Data Quality Tests"]
+        SQL["8 Gold Analytics Queries"]
         PBI["Power BI Executive Dashboard"]
     end
 
-    CSV -->|"01_bronze_load.dtsx"| B_TBL
-    B_TBL -->|"02_silver_transform.dtsx"| S_TBL
-    S_TBL -->|"03_gold_views.dtsx"| DIMS
-    S_TBL -->|"03_gold_views.dtsx"| FACTS
-    DIMS --> FACTS
     FACTS --> DQ
     FACTS --> SQL
     FACTS --> PBI
+```
+
