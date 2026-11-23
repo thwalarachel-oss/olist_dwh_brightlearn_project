@@ -29,34 +29,58 @@ The pipeline follows the **Medallion Architecture** (`Bronze → Silver → Gold
 
 ```mermaid
 flowchart LR
-    subgraph SRC["📂 Source Layer (9 Raw CSVs)"]
-        CSV["customers, orders, order_items,<br/>order_payments, order_reviews,<br/>products, sellers, geolocation,<br/>category_translation"]
+    CSV["Source CSVs (Olist)"] -->|"01_bronze_load.dtsx"| B_TBL["Bronze Layer (Raw Tables)"]
+    B_TBL -->|"02_silver_transform.dtsx"| S_TBL["Silver Layer (Cleansed & Conformed)"]
+
+    subgraph GLD["Gold Layer (Star Schema)"]
+        DIMS["Dimensions<br/>dim_customers (SCD2), dim_products, dim_sellers, dim_geolocation"]
+        FACTS["Facts<br/>fact_order_items, fact_order_payments, fact_order_reviews"]
     end
 
-    subgraph BRZ["🥉 Bronze Layer (Raw Staging)"]
-        B_TBL["bronze.*<br/>Untouched raw ingestion<br/>+ load_timestamp & source_file"]
-    end
+    S_TBL -->|"03_gold_views.dtsx / SQL"| DIMS
+    S_TBL -->|"03_gold_views.dtsx / SQL"| FACTS
+    DIMS --> FACTS
 
-    subgraph SLV["🥈 Silver Layer (Cleansed & Conformed)"]
-        S_TBL["silver.*<br/>snake_case standardization,<br/>type casting, ZIP deduplication,<br/>Portuguese → English translation"]
-    end
-
-    subgraph GLD["🥇 Gold Layer (Star Schema)"]
-        DIMS["Dimensions<br/>dim_customer (SCD2), dim_product,<br/>dim_seller, dim_geolocation, dim_date<br/>(-1 Unknown Member Rows)"]
-        FACTS["Facts<br/>fact_sales (Order-Item Grain)<br/>fact_payments (Order Grain)<br/>fact_reviews (Order Grain)"]
-    end
-
-    subgraph BI["📊 Analytics & Validation"]
-        DQ["10 Automated Data Quality Tests"]
-        SQL["8 Gold Business Analytics Queries"]
+    subgraph BI["Analytics & Validation"]
+        DQ["10 Data Quality Tests"]
+        SQL["8 Gold Analytics Queries"]
         PBI["Power BI Executive Dashboard"]
     end
 
-    CSV -->|"01_bronze_load.dtsx"| B_TBL
-    B_TBL -->|"02_silver_transform.dtsx"| S_TBL
-    S_TBL -->|"03_gold_views.dtsx"| DIMS
-    S_TBL -->|"03_gold_views.dtsx"| FACTS
-    DIMS --> FACTS
     FACTS --> DQ
     FACTS --> SQL
     FACTS --> PBI
+```
+
+
+
+
+
+## 4. Key Engineering & Design Decisions
+
+### Medallion Architecture (`bronze`, `silver`, `gold`)
+* **Decision:** Separated raw ingestion, cleansed/conformed data, and analytics-ready star-schema objects into distinct `bronze`, `silver`, and `gold` schemas in SQL Server (`olist_dwh`).
+* **Rationale:** Isolating raw CSV/SSIS ingestion in `bronze` preserves source fidelity for auditing and re-runs without polluting downstream logic. Cleansing, typing, and deduplicating in `silver` keeps transformation rules modular, while `gold` exposes clean dimensions and facts tailored for BI and SQL analytics.
+
+### Orchestration & Parameterization (`00_master.dtsx` & Sequential SQL Scripts)
+* **Decision:** Structured SSIS packages (`00_master.dtsx`, `01_bronze_load.dtsx`, `02_silver_transform.dtsx`, `03_gold_views.dtsx`) with project parameters and numbered SQL scripts (`00_`–`06_`) using idempotent (`DROP` / `IF NOT EXISTS`) patterns.
+* **Rationale:** A single master entry point (`00_master.dtsx`) enforces execution order across layers, while project-level parameters avoid hardcoding environment-specific paths. Idempotent SQL scripts allow repeatable builds and re-runs without object-creation conflicts.
+
+### Declared Grains & Star Schema Modeling
+* **Decision:** Modeled `gold` around explicit grain definitions—such as one row per order item in `gold.fact_order_items` and dimensional tables for customers, products, sellers, and geolocation—joined by surrogate keys (`_sk`).
+* **Rationale:** Declaring each table's grain upfront prevents accidental fan-out or double-counting during aggregations. Using integer surrogate keys decouples the warehouse from source natural-key formatting quirks and improves join performance in SQL Server and Power BI.
+
+### `-1` Unknown Dimension Members
+* **Decision:** Inserted a dedicated `-1` (`UNKNOWN`) member row in each Gold dimension and used `COALESCE(..., -1)` when resolving foreign keys in Gold facts.
+* **Rationale:** In real-world e-commerce data, late-arriving, missing, or unmatched reference keys can occur. Routing unmatched records to `-1` preserves referential integrity and keeps every fact row visible in analytical queries instead of silently dropping records through inner joins.
+
+### SCD Type 2 History Tracking on `gold.dim_customers`
+* **Decision:** Implemented Slowly Changing Dimension (SCD) Type 2 tracking (`valid_from`, `valid_to`, `is_current`) on `gold.dim_customers` while assigning new surrogate keys (`customer_sk`) when tracked customer attributes change.
+* **Rationale:** Overwriting customer attributes in place destroys historical accuracy for point-in-time reporting. SCD Type 2 preserves prior attribute states (`is_current = 0`) alongside the active version (`is_current = 1`) so historical orders remain accurately contextualized.
+
+### Gold-Only Analytics & Power BI Visual Documentation
+* **Decision:** Restricted analytics queries (`06_gold_analytics_queries.sql`) to `gold` objects and included report screenshots/PDF alongside `.pbix` files in the repository.
+* **Rationale:** Querying only `gold` enforces a clean semantic boundary so consumers never bypass modeled business logic. Including static images/PDF exports ensures reviewers can inspect dashboard visuals directly on GitHub even when large `.pbix` binaries cannot be previewed inline.
+
+
+

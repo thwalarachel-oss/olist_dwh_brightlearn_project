@@ -123,4 +123,8 @@ SELECT
         (SELECT COUNT(*) FROM silver.fact_order_items) -
         (SELECT COUNT(*) FROM gold.fact_order_items)
     ) AS failing_rows;
+<<<<<<< HEAD
 GO
+=======
+GO
+>>>>>>> ba588ecf4ed9931dd58a1a7ccd150334be6260c5
